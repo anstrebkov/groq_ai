@@ -16,7 +16,7 @@ groq_api_key = os.environ['GROQ_API_KEY']
 
 def main():
 
-    st.title("AI Chat")
+    st.title("GRSbot")
 
     # Add customization options to the sidebar
     st.sidebar.title('Select an LLM')
@@ -28,7 +28,7 @@ def main():
 
     memory=ConversationBufferWindowMemory(k=conversational_memory_length)
 
-    user_question = st.text_area("Ask a question:")
+    user_question = st.text_area("Задавай свой вопрос:")
 
     # session state variable
     if 'chat_history' not in st.session_state:
@@ -53,7 +53,7 @@ def main():
         response = conversation(user_question)
         message = {'human':user_question,'AI':response['response']}
         st.session_state.chat_history.append(message)
-        st.write("Chatbot:", response['response'])
+        st.write("GRSbot:", response['response'])
 
 if __name__ == "__main__":
     main()
