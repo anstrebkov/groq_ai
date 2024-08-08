@@ -24,7 +24,7 @@ def main():
         'Выберите модель',
         ['mixtral-8x7b-32768', "llama3-8b-8192",'gemma-7b-it']
     )
-    conversational_memory_length = st.sidebar.slider(''Conversational memory length:', 1, 10, value = 5)
+    conversational_memory_length = st.sidebar.slider('Conversational memory length:', 1, 10, value = 5)
 
     memory=ConversationBufferWindowMemory(k=conversational_memory_length)
 
