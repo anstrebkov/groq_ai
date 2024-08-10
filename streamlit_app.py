@@ -92,6 +92,7 @@ def main():
             st.write(filtered_df)
 
             st.subheader("Plotting Chart")
+            columns = filtered_df.columns.tolist()  # Update columns list after filtering
             x_column = st.selectbox("Select X-axis Column", columns)
             y_column = st.selectbox("Select Y-axis Column", columns)
 
