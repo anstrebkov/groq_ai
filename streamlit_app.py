@@ -92,7 +92,6 @@ def main():
             st.write(filtered_df)
 
             st.subheader("Plotting Chart")
-            columns = filtered_df.columns.tolist()  # Update columns list after filtering
             x_column = st.selectbox("Select X-axis Column", columns)
             y_column = st.selectbox("Select Y-axis Column", columns)
 
@@ -102,12 +101,12 @@ def main():
                         st.line_chart(filtered_df.set_index(x_column)[y_column])
                     except Exception as e:
                         st.error(f"Error generating chart: {e}")
-                else:
-                    st.error("Selected columns are not available in the filtered data.")
+
+        else:
+            st.error("Selected columns are not available in the filtered data.")
 
         else:
             st.write("Waiting for file upload...")
-
 
 if __name__ == "__main__":
     main()
