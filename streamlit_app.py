@@ -66,7 +66,7 @@ def main():
         uploaded_file = st.file_uploader("Загрузите CSV файл", type="csv")
 
         if uploaded_file is not None:
-            df = pd.read_csv(uploaded_file)
+            df = pd.read_csv(uploaded_file, encoding='utf-8')
 
             st.subheader("Предпросмотр данных")
             st.write(df.head())
