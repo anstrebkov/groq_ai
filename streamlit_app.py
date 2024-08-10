@@ -17,28 +17,28 @@ groq_api_key = os.environ['GROQ_API_KEY']
 def main():
     st.title("GRSbot with Data Dashboard")
 
-    st.sidebar.title("Выберите режим")
-    app_mode = st.sidebar.selectbox("Выберите режим работы", ["GRSbot", "Data Dashboard"])
+    st.sidebar.title("Select Mode")
+    app_mode = st.sidebar.selectbox("Select Mode", ["GRSbot", "Data Dashboard"])
 
     if app_mode == "GRSbot":
         st.subheader("GRSbot")
 
-        st.sidebar.title('Выберите модель LLM')
+        st.sidebar.title('Select LLM Model')
         model = st.sidebar.selectbox(
-            'Выберите модель',
-            ['mixtral-8x7b-32768', 'llama2-70b-4096', "llama3-8b-8192",'gemma-7b-it']
+            'Select Model',
+            ['mixtral-8x7b-32768', 'llama2-70b-4096', "llama3-8b-8192", 'gemma-7b-it']
         )
-        conversational_memory_length = st.sidebar.slider('Conversational memory length:', 1, 10, value=5)
+        conversational_memory_length = st.sidebar.slider('Conversational Memory Length:', 1, 10, value=5)
 
         memory = ConversationBufferWindowMemory(k=conversational_memory_length)
 
-        user_question = st.text_area("Задайте свой вопрос:")
+        user_question = st.text_area("Ask Your Question:")
 
         if 'chat_history' not in st.session_state:
-            st.session_state.chat_history = []
-        else:
-            for message in st.session_state.chat_history:
-                memory.save_context({'input': message['human']}, {'output': message['AI']})
+            st.session_state['chat_history'] = []
+
+        for message in st.session_state['chat_history']:
+            memory.save_context({'input': message['human']}, {'output': message['AI']})
 
         groq_chat = ChatGroq(
             groq_api_key=groq_api_key,
@@ -53,13 +53,13 @@ def main():
         if user_question:
             response = conversation(user_question)
             message = {'human': user_question, 'AI': response['response']}
-            st.session_state.chat_history.append(message)
+            st.session_state['chat_history'].append(message)
             st.write("GRSbot:", response['response'])
 
     elif app_mode == "Data Dashboard":
         st.subheader("Simple Data Dashboard")
 
-        uploaded_file = st.file_uploader("Загрузите CSV файл", type="csv")
+        uploaded_file = st.file_uploader("Upload CSV File", type="csv")
 
         if uploaded_file is not None:
             # Detect encoding
@@ -68,32 +68,42 @@ def main():
             encoding = result['encoding']
             uploaded_file.seek(0)  # Reset file pointer after reading
 
-            df = pd.read_csv(uploaded_file, encoding=encoding)
+            try:
+                df = pd.read_csv(uploaded_file, encoding=encoding)
+                df.columns = df.columns.str.strip()
+            except Exception as e:
+                st.error(f"Error loading CSV file: {e}")
+                return
 
-            st.subheader("Предпросмотр данных")
+            st.subheader("Data Preview")
             st.write(df.head())
 
-            st.subheader("Сводка данных")
+            st.subheader("Data Summary")
             st.write(df.describe())
 
-            st.subheader("Фильтрация данных")
+            st.subheader("Data Filtering")
             columns = df.columns.tolist()
-            selected_column = st.selectbox("Выберите колонку для фильтрации", columns)
+            selected_column = st.selectbox("Select Column for Filtering", columns)
             unique_values = df[selected_column].unique()
-            selected_value = st.selectbox("Выберите значение", unique_values)
+            selected_value = st.selectbox("Select Value", unique_values)
 
             filtered_df = df[df[selected_column] == selected_value]
             st.write(filtered_df)
 
-            st.subheader("Построение графика")
-            x_column = st.selectbox("Выберите колонку для оси X", columns)
-            y_column = st.selectbox("Выберите колонку для оси Y", columns)
+            st.subheader("Plotting Chart")
+            x_column = st.selectbox("Select X-axis Column", columns)
+            y_column = st.selectbox("Select Y-axis Column", columns)
 
-            if st.button("Сгенерировать график"):
-                st.line_chart(filtered_df.set_index(x_column)[y_column])
+            if st.button("Generate Chart"):
+                if x_column in filtered_df.columns and y_column in filtered_df.columns:
+                    try:
+                        st.line_chart(filtered_df.set_index(x_column)[y_column])
+                    except Exception as e:
+                        st.error(f"Error generating chart: {e}")
+                else:
+                    st.error("Selected columns are not available in the filtered data.")
         else:
-            st.write("Ожидание загрузки файла...")
+            st.write("Waiting for file upload...")
 
 if __name__ == "__main__":
     main()
-
