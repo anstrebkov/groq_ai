@@ -105,8 +105,8 @@ def main():
         else:
             st.error("Selected columns are not available in the filtered data.")
 
-        else:
-            st.write("Waiting for file upload...")
+    else:
+        st.write("Waiting for file upload...")
 
 if __name__ == "__main__":
     main()
