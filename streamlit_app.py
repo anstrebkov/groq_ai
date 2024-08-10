@@ -61,47 +61,50 @@ def main():
 
         uploaded_file = st.file_uploader("Upload CSV File", type="csv")
 
+        
         if uploaded_file is not None:
-            # Detect encoding
-            rawdata = uploaded_file.read()
-            result = chardet.detect(rawdata)
-            encoding = result['encoding']
-            uploaded_file.seek(0)  # Reset file pointer after reading
-
-            try:
-                df = pd.read_csv(uploaded_file, encoding=encoding)
-                df.columns = df.columns.str.strip()
-            except Exception as e:
-                st.error(f"Error loading CSV file: {e}")
-                return
-
-            st.subheader("Data Preview")
-            st.write(df.head())
-
-            st.subheader("Data Summary")
-            st.write(df.describe())
-
-            st.subheader("Data Filtering")
-            columns = df.columns.tolist()
-            selected_column = st.selectbox("Select Column for Filtering", columns)
-            unique_values = df[selected_column].unique()
-            selected_value = st.selectbox("Select Value", unique_values)
-
-            filtered_df = df[df[selected_column] == selected_value]
-            st.write(filtered_df)
-
-            st.subheader("Plotting Chart")
-            x_column = st.selectbox("Select X-axis Column", columns)
-            y_column = st.selectbox("Select Y-axis Column", columns)
-
-            if st.button("Generate Chart"):
-                if x_column in filtered_df.columns and y_column in filtered_df.columns:
-                    try:
-                        st.line_chart(filtered_df.set_index(x_column)[y_column])
-                    except Exception as e:
-                        st.error(f"Error generating chart: {e}")
-                else:
-                    st.error("Selected columns are not available in the filtered data.")
+        # Detect encoding
+        rawdata = uploaded_file.read()
+        result = chardet.detect(rawdata)
+        encoding = result['encoding']
+        uploaded_file.seek(0)  # Reset file pointer after reading
+    
+        try:
+            df = pd.read_csv(uploaded_file, encoding=encoding)
+            df.columns = df.columns.str.strip()  # Strip whitespace from column names
+        except Exception as e:
+            st.error(f"Error loading CSV file: {e}")
+            return
+    
+        st.subheader("Data Preview")
+        st.write(df.head())
+    
+        st.subheader("Data Summary")
+        st.write(df.describe())
+    
+        st.subheader("Data Filtering")
+        columns = df.columns.tolist()
+        selected_column = st.selectbox("Select Column for Filtering", columns)
+        unique_values = df[selected_column].unique()
+        selected_value = st.selectbox("Select Value", unique_values)
+    
+        filtered_df = df[df[selected_column] == selected_value]
+        st.write(filtered_df)
+    
+        st.subheader("Plotting Chart")
+        x_column = st.selectbox("Select X-axis Column", columns)
+        y_column = st.selectbox("Select Y-axis Column", columns)
+    
+        if st.button("Generate Chart"):
+            if x_column in filtered_df.columns and y_column in filtered_df.columns:
+                try:
+                    st.line_chart(filtered_df.set_index(x_column)[y_column])
+                except Exception as e:
+                    st.error(f"Error generating chart: {e}")
+            else:
+                st.error("Selected columns are not available in the filtered data.")
+       
+        
         else:
             st.write("Waiting for file upload...")
 
