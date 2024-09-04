@@ -1,6 +1,5 @@
 python-dotenv==1.0.1
 streamlit==1.37.1
-unstructured[local-inference]==0.7.11
 torch==2.4.0
 gtts==2.5.3
 transformers==4.44.2
