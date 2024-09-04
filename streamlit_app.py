@@ -1,20 +1,16 @@
 import streamlit as st
 from transformers import AutoModelForCausalLM, AutoTokenizer
-from gtts import gTTS
 import torch
+from gtts import gTTS
 
-# Setup device
+# Setup device to always use CPU
 device = "cpu"
 
 # Load a known and supported model
 language_model_name = "gpt2"  # Replace with a valid model name
-language_model = AutoModelForCausalLM.from_pretrained(
-    language_model_name,
-    device_map={"": device}  # Ensure the model is loaded on CPU
-)
+language_model = AutoModelForCausalLM.from_pretrained(language_model_name)
 tokenizer = AutoTokenizer.from_pretrained(language_model_name)
 
-# Function to process input
 def process_input(input_text, action):
     if action == "Translate to English":
         prompt = f"Please translate the following text into English: {input_text}"
@@ -32,29 +28,11 @@ def process_input(input_text, action):
         prompt = input_text
         lang = "en"
 
-    messages = [
-        {"role": "system", "content": "You are a helpful AI assistant."},
-        {"role": "user", "content": prompt}
-    ]
-    text = tokenizer.apply_chat_template(
-        messages,
-        tokenize=False,
-        add_generation_prompt=True
-    )
-    model_inputs = tokenizer([text], return_tensors="pt").to(device)
-
-    generated_ids = language_model.generate(
-        model_inputs.input_ids,
-        max_new_tokens=512
-    )
-    generated_ids = [
-        output_ids[len(input_ids):] for input_ids, output_ids in zip(model_inputs.input_ids, generated_ids)
-    ]
-
-    output_text = tokenizer.batch_decode(generated_ids, skip_special_tokens=True)[0]
+    inputs = tokenizer(prompt, return_tensors="pt").to(device)
+    outputs = language_model.generate(inputs['input_ids'], max_new_tokens=512)
+    output_text = tokenizer.decode(outputs[0], skip_special_tokens=True)
     return output_text, lang
 
-# Function to convert text to speech
 def text_to_speech(text, lang):
     tts = gTTS(text=text, lang=lang)
     filename = "output_audio.mp3"
@@ -62,24 +40,14 @@ def text_to_speech(text, lang):
     return filename
 
 # Streamlit app interface
-st.title("Translation and Chat App using AI")
-st.write("Translate input text or chat based on the selected action.")
-
-# User inputs
+st.title("Translation and Chat App")
 input_text = st.text_area("Input text")
-action = st.selectbox("Select action", ["Translate to English", "Translate to Chinese", "Translate to Japanese", "Translate to Russian", "Chat"])
+action = st.selectbox("Select action", ["Translate to English", "Translate to Chinese", "Translate to Japanese", "Translate to Russian"])
 
 if st.button("Submit"):
-    # Process input and generate output
     output_text, lang = process_input(input_text, action)
-
-    # Display the output text
     st.text_area("Output text", value=output_text, height=200)
 
-    # Generate and play the audio
     audio_filename = text_to_speech(output_text, lang)
-    audio_file = open(audio_filename, 'rb')
-    audio_bytes = audio_file.read()
-
-    st.audio(audio_bytes, format="audio/mp3")
-
+    with open(audio_filename, 'rb') as audio_file:
+        st.audio(audio_file, format="audio/mp3")
