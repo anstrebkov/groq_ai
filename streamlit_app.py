@@ -4,14 +4,13 @@ from gtts import gTTS
 import torch
 
 # Setup device
-device = "cuda" if torch.cuda.is_available() else "cpu"
+device = "cpu"
 
-# Load the model and tokenizer
-language_model_name = "Qwen/Qwen2-1.5B-Instruct"
+# Load a known and supported model
+language_model_name = "gpt2"  # Replace with a valid model name
 language_model = AutoModelForCausalLM.from_pretrained(
     language_model_name,
-    torch_dtype="auto",
-    device_map="auto"
+    device_map={"": device}  # Ensure the model is loaded on CPU
 )
 tokenizer = AutoTokenizer.from_pretrained(language_model_name)
 
